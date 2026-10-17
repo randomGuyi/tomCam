@@ -93,5 +93,14 @@ echo "Starting: python $SCRIPT $*"
 echo
 
 python "$SCRIPT" "$@"
+status=$?
 
+if [ "$status" -eq 0 ]; then
+    echo "Python script finished. Keeping Bluetooth connected for 15 seconds..."
+    sleep 15
+else
+    echo "Python script failed with exit code $status"
+fi
+
+exit "$status"
 

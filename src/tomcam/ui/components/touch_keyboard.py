@@ -42,7 +42,7 @@ class TouchKeyboard:
         rows = [
             list("qwertyuiop"),
             list("asdfghjkl"),
-            list("zxcvbnm") + ["⌫"],
+            list("zxcvbnm") + ["SHIFT", "⌫"],
             ["123", "SPACE", "CLEAR"],
         ]
 
@@ -98,7 +98,7 @@ class TouchKeyboard:
 
         for key, x, y, width, height in self._key_rectangles():
             special = key in {
-                "⌫", "SPACE", "CLEAR", "123", "ABC"
+                "⌫", "SPACE", "CLEAR", "123", "ABC", "SHIFT"
             }
 
             color = (
@@ -155,9 +155,11 @@ class TouchKeyboard:
         elif key == "ABC":
             self.numeric = False
 
+        elif key == "SHIFT":
+            self.shift = not self.shift
+
         elif len(key) == 1:
             self.value += key
 
             if self.shift and not self.numeric:
                 self.shift = False
-

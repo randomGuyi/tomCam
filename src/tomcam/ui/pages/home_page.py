@@ -22,6 +22,12 @@ class HomePage(BasePage):
     def activate(self, key):
         if key == "take_picture":
             self.app.navigation.show_take_picture()
+        elif key == "voice_to_image":
+            self.app.navigation.show_voice_to_image()
+        elif key == "library":
+            self.app.navigation.show_library()
+        elif key == "settings":
+            self.app.navigation.show_settings()
         else:
             self.app.status_message = f"{key.replace('_', ' ').title()} is not implemented yet."
 
@@ -35,5 +41,4 @@ class HomePage(BasePage):
                         62, 403, theme.MUTED, 18)
         if app.status_message:
             app.render_text(app.status_message, 430, 403, theme.SUCCESS, 18)
-
 

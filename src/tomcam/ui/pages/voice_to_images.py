@@ -7,6 +7,7 @@ from tomcam.config import theme
 from tomcam.ui.pages.base_page import BasePage
 from tomcam.ui.components.button import Button
 from tomcam.ui.components.header import draw_header
+from tomcam.ui.drawing import rounded_rect
 from tomcam.media.microphone import Microphone
 
 
@@ -46,8 +47,18 @@ class VoiceToImagePage(BasePage):
 
         elif key == "generate":
             if self.audio_path is not None:
-                # TODO: Call speech-to-text and image generation service.
-                self.status = "Ready for image generation"
+                self.status = "Image generation is not configured yet"
+            elif self.recording:
+                self.status = "Stop recording before generating"
+            else:
+                self.status = "Record audio before generating an image"
+
+    def go_back(self):
+        self.stop_recording()
+        self.app.navigation.show_home()
+
+    def on_hide(self):
+        self.stop_recording()
 
     def start_recording(self):
         try:

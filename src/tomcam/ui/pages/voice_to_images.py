@@ -20,7 +20,6 @@ class VoiceToImagePage(BasePage):
         )
 
         self.status = "Press to start recording"
-        self.recording = False
         self.audio_path = None
         self.start_time = None
 
@@ -34,13 +33,16 @@ class VoiceToImagePage(BasePage):
     def controls(self):
         return self._controls
 
+    def is_recording(self):
+        return self.microphone.is_recording()
+
     def activate(self, key):
         if key == "back":
             self.stop_recording()
             self.app.navigation.show_home()
 
         elif key == "record":
-            if self.recording:
+            if self.is_recording():
                 self.stop_recording()
             else:
                 self.start_recording()
@@ -48,7 +50,7 @@ class VoiceToImagePage(BasePage):
         elif key == "generate":
             if self.audio_path is not None:
                 self.status = "Image generation is not configured yet"
-            elif self.recording:
+            elif self.is_recording():
                 self.status = "Stop recording before generating"
             else:
                 self.status = "Record audio before generating an image"
@@ -66,7 +68,6 @@ class VoiceToImagePage(BasePage):
                 "data/audio/voice_input.wav"
             )
 
-            self.recording = True
             self.start_time = time.monotonic()
             self.audio_path = None
             self.status = "Listening..."
@@ -77,7 +78,7 @@ class VoiceToImagePage(BasePage):
             self.status = f"Microphone error: {exc}"
 
     def stop_recording(self):
-        if not self.recording:
+        if not self.is_recording():
             return
 
         try:
@@ -88,7 +89,6 @@ class VoiceToImagePage(BasePage):
             self.status = f"Recording error: {exc}"
 
         finally:
-            self.recording = False
             self.start_time = None
             self._controls[1].label = "Start Recording"
 
@@ -96,7 +96,7 @@ class VoiceToImagePage(BasePage):
         center_x = 400
         center_y = 235
 
-        if self.recording:
+        if self.is_recording():
             elapsed = time.monotonic() - self.start_time
 
             # Animated concentric circles.
@@ -152,6 +152,12 @@ class VoiceToImagePage(BasePage):
 
     def draw(self, app):
         draw_header(app, "Voice to Image")
+
+        recording = self.is_recording()
+        if not recording and self.start_time is not None:
+            self.start_time = None
+            self._controls[1].label = "Start Recording"
+            self.status = "Recording stopped unexpectedly"
 
         self.draw_visualizer(app)
 

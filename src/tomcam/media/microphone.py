@@ -1,4 +1,5 @@
 from pathlib import Path
+import signal
 import subprocess
 
 
@@ -14,10 +15,13 @@ class Microphone:
         self.channels = channels
         self._process = None
         self._output_path = None
+        self._recording_error = None
 
     def start_recording(self, destination: str) -> None:
         if self.is_recording():
             raise RuntimeError("Recording is already running")
+
+        self.recording_error()
 
         path = Path(destination)
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -39,27 +43,55 @@ class Microphone:
         )
 
         self._output_path = path
+        self._recording_error = None
 
     def stop_recording(self) -> Path:
-        if not self.is_recording():
+        if self._process is None:
             raise RuntimeError("No recording is running")
 
-        self._process.terminate()
-
+        process = self._process
+        if process.poll() is None:
+            process.send_signal(signal.SIGINT)
         try:
-            self._process.wait(timeout=3)
+            _, stderr = process.communicate(timeout=5)
         except subprocess.TimeoutExpired:
-            self._process.kill()
-            self._process.wait()
+            process.terminate()
+            try:
+                _, stderr = process.communicate(timeout=2)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                _, stderr = process.communicate()
 
         path = self._output_path
         self._process = None
         self._output_path = None
 
+        if process.returncode not in (0, -signal.SIGINT):
+            message = stderr.decode("utf-8", errors="replace").strip()
+            raise RuntimeError(
+                message or f"arecord exited with status {process.returncode}"
+            )
         if path is None or not path.exists():
             raise RuntimeError("Recording file was not created")
 
         return path
+
+    def recording_error(self):
+        if self._process is None or self._process.poll() is None:
+            return self._recording_error
+
+        process = self._process
+        _, stderr = process.communicate()
+        self._process = None
+        self._output_path = None
+
+        if process.returncode:
+            message = stderr.decode("utf-8", errors="replace").strip()
+            self._recording_error = (
+                message or f"arecord exited with status {process.returncode}"
+            )
+
+        return self._recording_error
 
     def is_recording(self) -> bool:
         return (

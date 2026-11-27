@@ -66,7 +66,14 @@ class Microphone:
         self._process = None
         self._output_path = None
 
-        if process.returncode not in (0, -signal.SIGINT):
+        stopped_by_interrupt = (
+            process.returncode == -signal.SIGINT
+            or (
+                process.returncode == 1
+                and b"Aborted by signal Interrupt" in stderr
+            )
+        )
+        if process.returncode != 0 and not stopped_by_interrupt:
             message = stderr.decode("utf-8", errors="replace").strip()
             raise RuntimeError(
                 message or f"arecord exited with status {process.returncode}"

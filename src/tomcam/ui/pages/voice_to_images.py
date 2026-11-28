@@ -10,6 +10,7 @@ import sdl2
 
 from tomcam.config import theme
 from tomcam.media.microphone import Microphone
+from tomcam.media.pm290 import PM290
 from tomcam.services.image_generator import ImageGenerator
 from tomcam.services.speech_to_text import SpeechToText
 from tomcam.ui.components.button import Button
@@ -52,6 +53,8 @@ class VoiceToImagePage(BasePage):
             self.toggle_recording()
         elif key == "generate":
             self.generate_image()
+        elif key == "print":
+            self.print_image()
 
     def go_back(self):
         self.app.navigation.show_home()
@@ -85,6 +88,8 @@ class VoiceToImagePage(BasePage):
         self.transcript = ""
         self.image_path = None
         self.destroy_image_texture()
+        self._controls[2].key = "generate"
+        self._controls[2].label = "Generate Image"
         try:
             self.audio_path = self.audio_directory / (
                 f"voice_{datetime.now():%Y%m%d_%H%M%S_%f}.wav"
@@ -113,6 +118,20 @@ class VoiceToImagePage(BasePage):
             "Generating image... This may take a few minutes.",
         )
         self._controls[2].label = "Generating..."
+
+    def print_image(self):
+        if self._operation:
+            return
+        if not self.image_path or not self.image_path.is_file():
+            self.status = "Generate an image before printing."
+            return
+
+        self._start_worker(
+            "printing",
+            lambda: PM290.print_image(str(self.image_path)),
+            "Sending image to the PM290 printer...",
+        )
+        self._controls[2].label = "Printing..."
 
     def _generate_image(self):
         generator = ImageGenerator()
@@ -151,13 +170,21 @@ class VoiceToImagePage(BasePage):
                 else:
                     self.transcript = result
                     self.status = "Description captured. Select Generate Image."
-            else:
+            elif operation == "generation":
                 self._controls[2].label = "Generate Image"
                 if error:
                     self.status = f"Image generation failed: {error}"
                 else:
                     self.image_path = Path(result)
+                    self._controls[2].key = "print"
+                    self._controls[2].label = "Print Image"
                     self.status = "Image generated."
+            else:
+                self._controls[2].label = "Print Image"
+                if error:
+                    self.status = f"Printing failed: {error}"
+                else:
+                    self.status = "Print data sent to the PM290 printer."
 
         if not self._operation and not self.microphone.is_recording():
             recording_error = self.microphone.recording_error()

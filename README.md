@@ -8,8 +8,8 @@ TomCam is designed to empower disabled users to take and create images independe
 
 - **Current Scope:** Home, camera, library, settings, Wi-Fi, and voice-to-image screens, supporting rotary encoder navigation, touch input, and keyboard testing.
 - **Custom Hardware:** The camera enclosure/body was custom-designed and 3D-printed by the creator.
-- **Voice to Image:** Records speech, transcribes it with Google's speech recognition service, sends the text to the configured image API, and previews/saves the returned image.
-- **Still in progress:** Camera capture and physical printing.
+- **Voice to Image:** Records speech, transcribes it with Google's speech recognition service, sends the text to the configured image API, previews/saves the returned image, and can send it to the PM290 printer.
+- **Still in progress:** Camera capture and printing from other screens.
 
 ---
 

@@ -1,16 +1,13 @@
-import sys
-import time 
-import serial 
-from PIL import Image, ImageOps
+import time
+
+import serial
+from PIL import Image
 
 PRINTER_PORT = "/dev/rfcomm0"
 WIDTH = 384
 
 
 class PM290:
-    def __init__(self, storage_path):
-        pass
-
     @staticmethod
     def make_job(path):
         img = Image.open(path).convert("L")
@@ -49,10 +46,9 @@ class PM290:
 
     @staticmethod
     def print_image(path):
-
         job = PM290.make_job(path)
         print(f"Prepared {len(job)} bytes of print data.")
-    
+
         with serial.Serial(
             PRINTER_PORT, baudrate=115200, timeout=1, write_timeout=10,
             xonxoff=False, rtscts=False, dsrdtr=False
@@ -68,10 +64,10 @@ class PM290:
             time.sleep(0.6)
             reply = ser.read(512)
             print("Printer response:", repr(reply))
-    
+
             if b"CONFIG" not in reply:
-                sys.exit("No CONFIG response; image was NOT sent.")
-    
+                raise RuntimeError("No CONFIG response; image was not sent.")
+
             ser.write(job)
             ser.flush()
             print("Print data sent.")

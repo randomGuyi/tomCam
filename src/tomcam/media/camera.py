@@ -64,32 +64,17 @@ class Camera:
             if success:
                 with self._lock:
                     self._latest_frame = frame
-
             else:
                 time.sleep(0.05)
 
     def get_frame(self):
-        """Return the most recent frame in OpenCV BGR format."""
+        # Return the most recent frame in OpenCV BGR format.
         with self._lock:
             if self._latest_frame is None:
                 return None
 
             return self._latest_frame.copy()
 
-    def capture_image(self, destination: str) -> Path:
-        """Save the most recent camera frame as an image."""
-        frame = self.get_frame()
-
-        if frame is None:
-            raise RuntimeError("No camera frame available")
-
-        path = Path(destination)
-        path.parent.mkdir(parents=True, exist_ok=True)
-
-        if not cv2.imwrite(str(path), frame):
-            raise RuntimeError(f"Could not save image: {path}")
-
-        return path
 
     def stop(self) -> None:
         self._running = False

@@ -126,6 +126,8 @@ class Application:
             self.close()
 
     def close(self):
+        if getattr(self, "navigation", None) and self.navigation.current_page:
+            self.navigation.current_page.on_hide()
         if self.rotary:
             self.rotary.close()
             self.rotary = None

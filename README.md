@@ -6,15 +6,10 @@ A custom-designed, 3D-printed accessibility camera prototype built around a **Ra
 
 TomCam is designed to empower disabled users to take and create images independently through accessible physical and touch controls.
 
-- **Current Scope (UI Prototype):** A focused two-screen interface containing **Home** and **Take Picture** views, supporting rotary encoder navigation, touch input, and keyboard testing.
+- **Current Scope:** Home, camera, library, settings, Wi-Fi, and voice-to-image screens, supporting rotary encoder navigation, touch input, and keyboard testing.
 - **Custom Hardware:** The camera enclosure/body was custom-designed and 3D-printed by the creator.
-- **Planned / Future Directions:**
-  - Camera capture pipeline
-  - AI image generation / processing features
-  - Physical printing support (e.g., `touch_printer`)
-  - Optional future sharing/linking to an Instagram account
-
-> **Note:** Camera capture, AI generation, and printer logic are intentionally outside this UI prototype for now—**Shoot Picture** is currently a placeholder.
+- **Voice to Image:** Records speech, transcribes it with Google's speech recognition service, sends the text to the configured image API, and previews/saves the returned image.
+- **Still in progress:** Camera capture and physical printing.
 
 ---
 
@@ -34,13 +29,23 @@ TomCam is designed to empower disabled users to take and create images independe
 
 ## Installation
 
-Install the required SDL2 system libraries and DejaVu fonts, then set up the Python virtual environment and dependencies:
+Install the Pi's SDL2, audio, and OpenCV packages, then create a virtual environment that can use those system packages:
 
 ```bash
 sudo apt update
-sudo apt install -y libsdl2-2.0-0 libsdl2-dev libsdl2-ttf-2.0-0 fonts-dejavu-core
+sudo apt install -y libsdl2-2.0-0 libsdl2-dev libsdl2-ttf-2.0-0 \
+  fonts-dejavu-core alsa-utils python3-opencv python3-numpy python3-venv
 cd ~/tomCam
+python3 -m venv --system-site-packages .venv
 source .venv/bin/activate
 pip install -r src/requirements.txt
 ```
+
+Set `IMAGE_API_URL` and `IMAGE_API_KEY` in `.env` at the repository root or in `src/.env`. Start the interface from the repository root:
+
+```bash
+python src/main.py
+```
+
+On the voice-to-image screen, select **Start Recording**, describe the image, select **Stop Recording**, then select **Generate Image**. Transcription and generation run in the background so the display remains responsive. Speech recognition and image generation both require network access. The default Pi microphone is `plughw:1,0`; override it with `TOMCAM_AUDIO_DEVICE` if the microphone uses a different ALSA device.
 

@@ -15,9 +15,9 @@ class ImageGenerator:
     def __init__(self):
         # Project root: <project>/src/tomcam/services/image_generator.py
         project_root = Path(__file__).resolve().parents[3]
-        env_path = project_root / ".env"
-
-        load_dotenv(env_path)
+        for env_path in (project_root / ".env", project_root / "src" / ".env"):
+            if env_path.is_file():
+                load_dotenv(env_path)
 
         self.api_url = os.getenv("IMAGE_API_URL")
         self.api_key = os.getenv("IMAGE_API_KEY")
